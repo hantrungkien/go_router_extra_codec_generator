@@ -5,7 +5,7 @@ targets:
         - ios/.symlinks
         - ios/.symlinks/**/**.dart
     builders:
-      mm_router_extra_codec_generator:
+      go_router_extra_codec_generator:
         enabled: true
         options:
           output_filename: router_extra_converter.dart
