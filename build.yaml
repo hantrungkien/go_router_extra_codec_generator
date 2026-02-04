@@ -13,7 +13,8 @@ targets:
           codec_class_name: MyRouterExtraCodec
           generate_for:
             include:
-              - lib/main.dart
+              - lib/*.dart
+              - lib/**/*.dart
             exclude:
               - lib/**/*.g.dart
               - lib/**/*.freezed.dart
@@ -24,7 +25,8 @@ targets:
           checked: true
         generate_for:
           include:
-            - lib/main.dart
+            - lib/*.dart
+            - lib/**/*.dart
 
 global_options:
   json_serializable:

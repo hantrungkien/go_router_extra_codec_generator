@@ -232,6 +232,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "17.0.1"
+  go_router_builder:
+    dependency: "direct dev"
+    description:
+      name: go_router_builder
+      sha256: "135648d2febcf6e45d87ad12f4dbcf2d0fb46eb1aa14722c0a42c7a60f02ac55"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.2.0"
   go_router_extra_codec_generator:
     dependency: "direct main"
     description:
