@@ -1,7 +1,3 @@
-// Copyright 2013 The Flutter Authors
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -13,25 +9,22 @@ import 'generated/router/router_extra_converter.dart';
 
 part 'main.g.dart';
 
-/// This sample app demonstrates how to provide a codec for complex extra data.
-void main() => runApp(const MyApp());
+/// RUN app in release mode
+/// adb shell am kill com.example.example
 
-/// The router configuration.
+void main() => runApp(MyApp());
+
 final GoRouter _router = GoRouter(
   restorationScopeId: "root_router",
-  routes: <RouteBase>[
-    GoRoute(
-      path: '/',
-      builder: (BuildContext context, GoRouterState state) =>
-          const HomeScreen(),
-    ),
-  ],
   extraCodec: generatedGoRouterExtraCodec,
+  initialLocation: "/",
+  routes: <RouteBase>[
+    GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+    GoRoute(path: '/test', builder: (context, state) => const HomeScreen()),
+  ],
 );
 
-/// The main app.
 class MyApp extends StatelessWidget {
-  /// Constructs a [MyApp]
   const MyApp({super.key});
 
   @override
@@ -43,33 +36,32 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// The home screen.
 class HomeScreen extends StatelessWidget {
-  /// Constructs a [HomeScreen].
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final extra = GoRouterState.of(context).extra;
     return Scaffold(
       appBar: AppBar(title: const Text('Home Screen')),
       body: Center(
         child: Column(
+          spacing: 12,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              "If running in web, use the browser's backward and forward button to test extra codec after setting extra several times.",
-            ),
-            Text(
-              'The extra for this page is: ${GoRouterState.of(context).extra}',
-            ),
+            if (extra != null) Text('TEST TEST extra for this page is: $extra'),
             ElevatedButton(
-              onPressed: () =>
-                  context.go('/', extra: Complex1PageExtra(data: 'data 1')),
+              onPressed: () => context.push(
+                '/test',
+                extra: Complex1PageExtra(data: 'Test data 1'),
+              ),
               child: const Text('Set extra to Complex1PageExtra'),
             ),
             ElevatedButton(
-              onPressed: () =>
-                  context.go('/', extra: Complex2PageExtra(data: 'data 2')),
+              onPressed: () => context.push(
+                '/test',
+                extra: Complex2PageExtra(data: 'Test data 2'),
+              ),
               child: const Text('Set extra to Complex2PageExtra'),
             ),
           ],
