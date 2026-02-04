@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'details_page.dart';
+import 'router.dart';
 
 class Tab2Page extends StatelessWidget {
   const Tab2Page({super.key});
@@ -16,10 +16,11 @@ class Tab2Page extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-              onPressed: () => context.push(
-                '/details',
-                extra: DetailsPageExtra(data: 'Test data 2'),
-              ),
+              onPressed: () {
+                DetailsRouteData(
+                  $extra: DetailsPageExtra(data: 'Test data 2'),
+                ).push(context);
+              },
               child: const Text('Set extra to DetailsPageExtra'),
             ),
           ],

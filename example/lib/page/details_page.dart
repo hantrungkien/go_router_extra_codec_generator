@@ -28,7 +28,7 @@ class DetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final extra = GoRouterState.of(context).extra;
+    final extra = GoRouterState.of(context).extra as DetailsPageExtra;
     return Scaffold(
       appBar: AppBar(title: const Text('Details Page')),
       body: Center(
@@ -36,7 +36,7 @@ class DetailsPage extends StatelessWidget {
           spacing: 12,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            if (extra != null) Text('TEST TEST extra for this page is: $extra'),
+            Text('TEST: ${extra.toJson()}'),
           ],
         ),
       ),
