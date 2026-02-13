@@ -1,6 +1,6 @@
 builders:
   go_router_extra_codec_generator:
-    import: "package:go_router_extra_codec_generator/builder.dart"
+    import: "package:go_router_extra_codec_generator/go_router_extra_codec_generator.dart"
     builder_factories:
       - goRouterExtraCodecBuilder
     build_extensions:
@@ -12,7 +12,7 @@ builders:
       - go_router_extra_codec_generator|go_router_extra_codec_combining_generator
 
   go_router_extra_codec_combining_generator:
-    import: "package:go_router_extra_codec_generator/builder.dart"
+    import: "package:go_router_extra_codec_generator/go_router_extra_codec_generator.dart"
     builder_factories:
       - goRouterExtraCodecCombiningBuilder
     build_extensions:
