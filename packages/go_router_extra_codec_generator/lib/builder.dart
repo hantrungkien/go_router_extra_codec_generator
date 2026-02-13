@@ -4,3 +4,8 @@ import 'package:go_router_extra_codec_generator/src/router_extra_codec_generator
 Builder goRouterExtraCodecBuilder(BuilderOptions options) {
   return GoRouterExtraCodecBuilder(options);
 }
+
+Builder goRouterExtraCodecCombiningBuilder(BuilderOptions options) {
+  return GoRouterExtraCodecCombiningBuilder(options);
+}
+

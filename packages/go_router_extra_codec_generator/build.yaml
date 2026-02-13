@@ -1,0 +1,25 @@
+builders:
+  go_router_extra_codec_generator:
+    import: "package:go_router_extra_codec_generator/builder.dart"
+    builder_factories:
+      - goRouterExtraCodecBuilder
+    build_extensions:
+      .dart:
+        - .router_extra.dart
+    auto_apply: dependents
+    build_to: cache
+    runs_before:
+      - go_router_extra_codec_generator|go_router_extra_codec_combining_generator
+
+  go_router_extra_codec_combining_generator:
+    import: "package:go_router_extra_codec_generator/builder.dart"
+    builder_factories:
+      - goRouterExtraCodecCombiningBuilder
+    build_extensions:
+      $lib$:
+        - lib/generated/router/{...}
+    auto_apply: dependents
+    build_to: source
+    required_inputs:
+      - .router_extra.dart
+

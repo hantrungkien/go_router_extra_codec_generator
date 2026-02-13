@@ -2,13 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:go_router_examples/generated/router/router_extra_converter.dart';
-import 'package:go_router_examples/main.dart';
+import 'package:go_router_examples/generated/router/router_extra_codec.gen.dart';
 import 'package:go_router_examples/page/details_page.dart';
 import 'package:go_router_examples/page/main_page.dart';
 import 'package:go_router_examples/page/tab_1_page.dart';
 import 'package:go_router_examples/page/tab_2_page.dart';
-import 'package:go_router_extra_codec_generator/annotation.dart';
+import 'package:go_router_extra_codec_annotation/annotation.dart';
 
 part 'router.g.dart';
 
@@ -98,7 +97,7 @@ class DetailsRouteData extends GoRouteData with $DetailsRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return const DetailsPage();
+    return DetailsPage(extra: $extra);
   }
 }
 
@@ -109,6 +108,14 @@ final router = GoRouter(
   initialLocation: "/tab1",
   routes: $appRoutes,
 );
+
+abstract class BasePageExtra {
+  String get nameType;
+
+  Map<String, dynamic> toJson();
+
+  const BasePageExtra();
+}
 
 @GoRouterExtraEncoder()
 class MyExtraEncoder extends Converter<Object?, Object?> {

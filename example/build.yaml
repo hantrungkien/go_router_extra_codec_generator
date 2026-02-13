@@ -1,0 +1,29 @@
+targets:
+  $default:
+    sources:
+      exclude:
+        - ios/.symlinks
+        - ios/.symlinks/**/**.dart
+    builders:
+      go_router_extra_codec_generator:
+        enabled: true
+        generate_for:
+          include:
+            - lib/page/*_page.dart
+            - lib/page/router.dart
+        options:
+          output_filename: router_extra_codec.gen.dart
+          output_folder: lib/generated/router
+      json_serializable:
+        options:
+          explicit_to_json: true
+          checked: true
+        generate_for:
+          include:
+            - lib/*.dart
+            - lib/**/*.dart
+
+global_options:
+  json_serializable:
+    runs_before:
+      - go_router_extra_codec_generator

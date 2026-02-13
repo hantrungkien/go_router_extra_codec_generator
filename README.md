@@ -1,6 +1,6 @@
 # go_router_extra_codec_generator
 
-A code generator for Flutter that automatically creates codec registries for GoRouter extra parameters, solving serialization/deserialization and state restoration challenges.
+Automatically generates codec registries for GoRouter extra parameters with type-safe serialization and state restoration support.
 
 <p align="center">
   <a href="https://flutter.dev">
@@ -18,79 +18,49 @@ A code generator for Flutter that automatically creates codec registries for GoR
   <br>
 </p><br>
 
-## 🔍 Keywords
-`flutter`, `go_router`, `codec`, `serialization`, `state restoration`, `code generation`
+## Why?
 
-## 🎯 Problem
+When using [GoRouter](https://pub.dev/packages/go_router) with complex `extra` objects:
+- ❌ Manual factory registry management is tedious and error-prone
+- ❌ State restoration requires proper serialization setup
+- ❌ Type information is lost during serialization
 
-When working with Flutter's [GoRouter](https://pub.dev/packages/go_router), developers face several challenges:
+This package:
+- ✅ Auto-generates factory registries from annotations
+- ✅ Creates type-safe encoder/decoder with `Codec<Object?, Object?>`
+- ✅ Preserves type information for proper deserialization
+- ✅ Supports state restoration out of the box
 
-### 1. **Complex Extra Serialization**
-Passing complex objects between screens requires custom serialization/deserialization logic through the `extraCodec` parameter.
-
-### 2. **State Restoration**
-Restoring navigation state when the app returns from background to foreground requires:
-- Adding `restorationScopeId` to `GoRouter`, `ShellRoute`, and `MaterialApp.router`
-- Properly serializable extra parameters
-- Manual factory registration
-
-### 3. **Manual Registry Management**
-In projects with many Extra classes, manually maintaining the factory registry becomes tedious and error-prone:
-
-```dart
-// Manually maintaining this is time-consuming!
-final Map<String, dynamic Function(Map<String, dynamic>)> factories = {
-  'Complex1PageExtra': (json) => Complex1PageExtra.fromJson(json),
-  'Complex2PageExtra': (json) => Complex2PageExtra.fromJson(json),
-  'Complex3PageExtra': (json) => Complex3PageExtra.fromJson(json),
-  // ... dozens more
-};
-```
-
-## ✨ Solution
-
-This package automatically generates the factory registry using build_runner and annotations:
-
-```dart
-@GoRouterPageExtra(name: "Complex1PageExtra")
-class Complex1PageExtra extends BasePageExtra {
-  // Your class implementation
-}
-```
-
-The generator will:
-- ✅ Automatically create `generatedRouterExtraFactories` registry
-- ✅ Generate a `GoRouterExtraCodec` class extending `Codec<Object?, Object?>`
-- ✅ Wire up your custom encoder/decoder classes
-- ✅ Keep everything in sync as you add/remove Extra classes
-
-## 📦 Installation
-
-Add to your `pubspec.yaml`:
+## Installation
 
 ```yaml
 dependencies:
-  go_router: ^14.0.0
-  json_annotation: ^4.9.0
-  go_router_extra_codec_generator: ^1.0.0
+  go_router_extra_codec_annotation: ^1.1.0
 
 dev_dependencies:
-  build_runner: ^2.4.0
-  json_serializable: ^6.8.0
+  go_router_extra_codec_generator: ^1.1.0
 ```
 
-Then run:
-```bash
-flutter pub get
-```
+Run: `flutter pub get`
 
-## 🚀 Usage
+## Usage
 
-### Step 1: Implement Your Encoder and Decoder
+### 1. Define Base Class and Encoder/Decoder
 
-Following [GoRouter's official guidance](https://pub.dev/documentation/go_router/latest/topics/Configuration-topic.html#configuring-the-code-for-serializing-extra), create encoder and decoder classes:
+Create a base class for all Extra objects and implement encoder/decoder:
 
 ```dart
+import 'dart:convert';
+import 'package:go_router_extra_codec_annotation/annotation.dart';
+
+// Base class for all Extra objects
+abstract class BasePageExtra {
+  String get nameType;
+  Map<String, dynamic> toJson();
+  const BasePageExtra();
+}
+
+// Encoder: Serialize objects with type information
 @GoRouterExtraEncoder()
 class MyExtraEncoder extends Converter<Object?, Object?> {
   final Map<String, dynamic Function(Map<String, dynamic>)> factories;
@@ -98,19 +68,26 @@ class MyExtraEncoder extends Converter<Object?, Object?> {
 
   @override
   Object? convert(Object? input) {
-    // Handle primitives
     if (input == null || input is num || input is String || input is bool) {
       return input;
     }
-    // Serialize complex objects with type information
-    final typeName = (input as BasePageExtra).nameType;
-    if (factories.containsKey(typeName)) {
-      return {'__type': typeName, 'data': input.toJson()};
-    }
+    try {
+      final typeName = input is BasePageExtra
+          ? input.nameType
+          : input.runtimeType.toString();
+      if (factories.containsKey(typeName)) {
+        final data = input is BasePageExtra
+            ? input.toJson()
+            : (input as dynamic).toJson();
+        print('Encoding extra of type: $typeName with data: $data');
+        return <String, dynamic>{'__type': typeName, 'data': data};
+      }
+    } catch (_) {}
     return input;
   }
 }
 
+// Decoder: Deserialize objects using type information
 @GoRouterExtraDecoder()
 class MyExtraDecoder extends Converter<Object?, Object?> {
   final Map<String, dynamic Function(Map<String, dynamic>)> factories;
@@ -118,114 +95,118 @@ class MyExtraDecoder extends Converter<Object?, Object?> {
 
   @override
   Object? convert(Object? input) {
-    // Deserialize objects using registered factories
-    if (input is Map<String, dynamic> && input.containsKey('__type')) {
-      final factory = factories[input['__type']];
-      return factory?.call(input['data'] as Map<String, dynamic>);
+    if (input is Map && input.containsKey('__type')) {
+      try {
+        final typeName = input['__type'];
+        final rawData = input['data'];
+        final factory = factories[typeName];
+
+        if (factory != null && rawData is Map) {
+          final typedData = Map<String, dynamic>.from(rawData);
+          return factory(typedData);
+        }
+      } catch (_) {}
     }
     return input;
   }
 }
 ```
 
-> 💡 See the [complete example](./example/lib/main.dart) for the full implementation.
-
-### Step 2: Annotate Your Extra Classes
-
-Mark classes with `@GoRouterPageExtra` for automatic registration:
+### 2. Create Extra Classes with Annotations
 
 ```dart
-import 'package:go_router_extra_codec_generator/annotation.dart';
+import 'package:go_router_extra_codec_annotation/annotation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-part 'main.g.dart';
+part 'details_page.g.dart';
 
-abstract class BasePageExtra {
-  String get nameType;
-  Map<String, dynamic> toJson();
-}
-
-@GoRouterPageExtra(name: "Complex1PageExtra")
+@GoRouterPageExtra(name: "DetailsPageExtra")
 @JsonSerializable()
-class Complex1PageExtra extends BasePageExtra {
+class DetailsPageExtra extends BasePageExtra {
   final String data;
   
-  Complex1PageExtra({required this.data});
+  const DetailsPageExtra({required this.data});
 
-  factory Complex1PageExtra.fromJson(Map<String, dynamic> json) =>
-      _$Complex1PageExtraFromJson(json);
-
-  @override
-  Map<String, dynamic> toJson() => _$Complex1PageExtraToJson(this);
+  factory DetailsPageExtra.fromJson(Map<String, dynamic> json) =>
+      _$DetailsPageExtraFromJson(json);
 
   @override
-  String get nameType => "Complex1PageExtra";
+  Map<String, dynamic> toJson() => _$DetailsPageExtraToJson(this);
+
+  @override
+  String get nameType => "DetailsPageExtra";
 }
-
-// Add more Extra classes as needed...
 ```
 
 **💡 Tips:**
-- Providing a `name` prevents minification issues in release builds
-- Extend from a base class with `nameType` getter for consistent type identification
-- Use `json_serializable` for automatic JSON serialization
+- Use `@GoRouterPageExtra(name: "...")` to prevent minification issues
+- Extend `BasePageExtra` for consistent type handling
+- Use `json_serializable` for automatic JSON methods
 
-### Step 3: Run Code Generation
+### 3. Run Code Generator
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-This generates `router_extra_converter.dart` with:
+This generates `router_extra_codec.gen.dart`:
 
 ```dart
 /// Auto-generated registry for Extra classes
-final Map<String, dynamic Function(Map<String, dynamic>)> generatedRouterExtraFactories = {
-  'Complex1PageExtra': (json) => Complex1PageExtra.fromJson(json),
-  'Complex2PageExtra': (json) => Complex2PageExtra.fromJson(json),
+final Map<String, dynamic Function(Map<String, dynamic>)>
+    generatedRouterExtraFactories = {
+  'DetailsPageExtra': (json) => DetailsPageExtra.fromJson(json),
 };
 
 /// Codec instance with auto-generated factories
-final generatedGoRouterExtraCodec = GoRouterExtraCodec(generatedRouterExtraFactories);
+final generatedGoRouterExtraCodec =
+    GoRouterExtraCodec(generatedRouterExtraFactories);
 ```
 
-### Step 4: Configure GoRouter
+### 4. Configure GoRouter
 
 ```dart
-final GoRouter _router = GoRouter(
-  restorationScopeId: "root_router", // Required for state restoration
-  extraCodec: generatedGoRouterExtraCodec, // Use generated codec
+final router = GoRouter(
+  navigatorKey: rootNavigatorKey,
+  restorationScopeId: "root_router", // ⚠️ Required for state restoration
+  extraCodec: generatedGoRouterExtraCodec, // 🎯 Use generated codec
+  initialLocation: "/tab1",
   routes: [...],
 );
+```
 
+**For StatefulShellRoute with state restoration:**
+
+```dart
+@TypedStatefulShellRoute<MainShellRouteData>(...)
+class MainShellRouteData extends StatefulShellRouteData {
+  static const String $restorationScopeId = 'mainShellRoute'; // ⚠️ Add this
+  // ...
+}
+```
+
+### 5. Setup MaterialApp
+
+```dart
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      restorationScopeId: "my_app", // Required for state restoration
-      routerConfig: _router,
+      restorationScopeId: "my_app", // ⚠️ Required for state restoration
+      routerConfig: router,
     );
   }
 }
 ```
 
-**⚠️ State Restoration:**
-Add `restorationScopeId` to `MaterialApp.router`, `GoRouter`, and `ShellRoute` for proper state restoration when returning from background.
-
-### Step 5: Use It!
+### 6. Use in Routes
 
 ```dart
-// Navigate with complex extras
-context.go('/', extra: Complex1PageExtra(data: 'Hello'));
-
-// Access extras
-final extra = GoRouterState.of(context).extra;
-if (extra is Complex1PageExtra) {
-  print(extra.data);
-}
+// Navigate with extra
+DetailsRouteData($extra: DetailsPageExtra(data: 'Test data 1')).push(context);
 ```
 
-##  Configuration (Optional)
+## Configuration (Optional)
 
 Customize output location via `build.yaml`:
 
@@ -233,34 +214,40 @@ Customize output location via `build.yaml`:
 targets:
   $default:
     builders:
-      go_router_extra_codec_generator:builder:
+      go_router_extra_codec_generator:
+        enabled: true
+        generate_for:
+          include:
+            - lib/page/*_page.dart
+            - lib/page/router.dart
         options:
-          output_dir: "lib/generated/router"
+          output_filename: router_extra_codec.gen.dart
+          output_folder: lib/generated/router
 ```
 
-## 💡 Example
+**Options:**
+- `output_filename`: Name of generated file (default: `router_extra_codec.gen.dart`)
+- `output_folder`: Output directory (default: `lib/generated/router`)
+- `generate_for`: Specify which files to scan for annotations
+
+## Example
 
 See the [example](./example) folder for a complete working implementation demonstrating:
-- Multiple Extra classes
+- Multiple Extra classes with `@GoRouterPageExtra` annotation
 - State restoration on web (browser back/forward)
 - Custom encoder/decoder implementation
 - Integration with `json_serializable`
+- StatefulShellRoute with tabs
 
-Run the example:
-```bash
-cd example
-flutter run -d chrome
-```
-
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📄 License
+## License
 
-This project is licensed under the MIT - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👤 Author
+## Author
 
 Created by @KienHT
 
