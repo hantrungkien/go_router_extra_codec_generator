@@ -64,10 +64,6 @@ class GoRouterExtraCodecBuilder implements Builder {
         }
       }
 
-      if (extraClasses.isEmpty) {
-        log.info('  No @GoRouterPageExtra classes found in ${buildStep.inputId.path}');
-      }
-
       // Find @GoRouterExtraEncoder
       const encoderChecker = TypeChecker.fromUrl(
         'package:go_router_extra_codec_annotation/src/router_extra_annotation.dart#GoRouterExtraEncoder',
@@ -80,10 +76,6 @@ class GoRouterExtraCodecBuilder implements Builder {
         }
       }
 
-      if (encoderClass == null || encoderImport == null) {
-        log.info('  No Encoder found in ${buildStep.inputId.path}');
-      }
-
       // Find @GoRouterExtraDecoder
       const decoderChecker = TypeChecker.fromUrl(
         'package:go_router_extra_codec_annotation/src/router_extra_annotation.dart#GoRouterExtraDecoder',
@@ -94,10 +86,6 @@ class GoRouterExtraCodecBuilder implements Builder {
           decoderImport = lib.identifier;
           log.info('  Found Decoder: $decoderClass');
         }
-      }
-
-      if (decoderClass == null || decoderImport == null) {
-        log.info('  No Decoder found in ${buildStep.inputId.path}');
       }
 
       // Generate .router_extra.dart file for this input
@@ -297,10 +285,6 @@ class GoRouterExtraCodecCombiningBuilder implements Builder {
             }
           }
 
-          if (extraClasses.isEmpty) {
-            log.warning('No @GoRouterPageExtra classes found');
-          }
-
           // Find @GoRouterExtraEncoder
           const encoderChecker = TypeChecker.fromUrl(
             'package:go_router_extra_codec_annotation/src/router_extra_annotation.dart#GoRouterExtraEncoder',
@@ -310,10 +294,6 @@ class GoRouterExtraCodecCombiningBuilder implements Builder {
               encoderClass = annotated.element.name;
               encoderImport = lib.identifier;
             }
-          }
-
-          if (encoderClass == null || encoderImport == null) {
-            log.info('  No Encoder found in ${buildStep.inputId.path}');
           }
 
           // Find @GoRouterExtraDecoder
@@ -326,17 +306,9 @@ class GoRouterExtraCodecCombiningBuilder implements Builder {
               decoderImport = lib.identifier;
             }
           }
-
-          if (decoderClass == null || decoderImport == null) {
-            log.info('  No Decoder found in ${buildStep.inputId.path}');
-          }
         } catch (e, stack) {
           log.warning('Error processing $sourcePath: $e', e, stack);
         }
-      }
-
-      if (extraClasses.isEmpty) {
-        log.warning('No @GoRouterPageExtra classes found');
       }
 
       log.info(

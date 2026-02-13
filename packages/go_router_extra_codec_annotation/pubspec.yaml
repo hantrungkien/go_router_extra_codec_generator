@@ -1,6 +1,6 @@
 name: go_router_extra_codec_annotation
 description: A Flutter package that provides annotations for extra codec support in go_router.
-version: 1.1.0
+version: 1.1.1
 repository: https://github.com/hantrungkien/go_router_extra_codec_generator
 maintainer: KienHT
 
