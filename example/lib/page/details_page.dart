@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router_examples/page/router.dart';
-import 'package:go_router_extra_codec_annotation/annotation.dart';
+import 'package:go_router_extra_codec_annotation/go_router_extra_codec_annotation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'details_page.g.dart';

@@ -7,7 +7,7 @@ import 'package:go_router_examples/page/details_page.dart';
 import 'package:go_router_examples/page/main_page.dart';
 import 'package:go_router_examples/page/tab_1_page.dart';
 import 'package:go_router_examples/page/tab_2_page.dart';
-import 'package:go_router_extra_codec_annotation/annotation.dart';
+import 'package:go_router_extra_codec_annotation/go_router_extra_codec_annotation.dart';
 
 part 'router.g.dart';
 
